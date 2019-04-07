@@ -1,0 +1,6 @@
+includes:
+  - 'layer:basic'
+options:
+  basic:
+    packages:
+      - krb5-user

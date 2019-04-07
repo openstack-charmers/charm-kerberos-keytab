@@ -1,0 +1,22 @@
+name: kerberos-keytab
+summary: Join an Ubuntu server to an AD domian using a pregenerated keytab
+maintainer: Michael Skalka <Michael.Skalka@communal-raptor>
+description: |
+  Given a flat tarball of keytab files keyed by $(hostname).keytab this charm
+  will extract the keytab and using kinit generate a credentials cache for
+  authentication against a remote KDC or Kerberos enabled AD server.
+tags:
+  - security
+subordinate: true
+series:
+  - xenial
+  - bionic
+requires:
+  juju-info:
+    interface: juju-info
+    scope: container
+resources:
+  keytab_bundle:
+    type: file
+    filename: keytab.tar
+    description: Keytab bundle

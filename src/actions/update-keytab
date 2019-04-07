@@ -1,0 +1,5 @@
+#!/bin/sh
+set -eux
+
+charms.reactive set_state kerberos.keytab-update-requested
+exec hooks/config-changed
