@@ -1,7 +1,8 @@
-import mock
+# import mock
 
-import reactive.infoblox_handlers as handlers
+import reactive.kerberos_keytab as handlers
 import charms_openstack.test_utils as test_utils
+
 
 class TestRegisteredHooks(test_utils.TestRegisteredHooks):
 
@@ -12,7 +13,8 @@ class TestRegisteredHooks(test_utils.TestRegisteredHooks):
         hook_set = {
             'when': {
                 'config_changed': ('config.changed', 'kerberos.installed'),
-                'keytab_update_requested': ('kerberos.keytab-update-requested', ),
+                'keytab_update_requested': (
+                    'kerberos.keytab-update-requested', ),
             },
             'when_not': {
                 'install': ('kerberos.installed', ),

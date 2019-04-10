@@ -1,6 +1,3 @@
-import os
-from socket import gethostname
-import subprocess
 
 from kerberos.kerberos_keytab_utils import (
     check_keytab_for_upgrade_needed,
@@ -9,7 +6,6 @@ from kerberos.kerberos_keytab_utils import (
 )
 
 from charms.reactive import (
-    hook,
     remove_state,
     set_state,
     when,
@@ -17,8 +13,8 @@ from charms.reactive import (
 )
 from charmhelpers.core import (
     hookenv,
-    unitdata,
 )
+
 
 @when_not('kerberos.installed')
 def install():

@@ -1,21 +1,23 @@
 options:
   realm:
     type: string
-    defaut: EXAMPLE.COM
+    default: EXAMPLE.COM
     description: |
       Kerberos Realm. Currently only supports a single entry.
   domain:
     type: string
-    defaut: EXAMPLE.COM
+    default: EXAMPLE.COM
     description: |
       Kerberos domain. Currently only supports a single entry.
   kdc-address:
     type: string
+    default:
     description: |
       IP Address or hostname of the remote KDC or Kerberos enabled AD
       server.
   admin-server-address:
     type: string
+    default:
     description: |
       IP Address or hostname of the remote admin server.
   user:
