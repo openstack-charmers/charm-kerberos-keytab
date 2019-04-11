@@ -6,13 +6,14 @@ from kerberos.kerberos_keytab_utils import (
 )
 
 from charms.reactive import (
-    remove_state,
-    set_state,
+    clear_flag,
+    set_flag,
     when,
     when_not,
 )
-from charmhelpers.core import (
-    hookenv,
+
+from charmhelpers.core.hookenv import (
+    status_set
 )
 
 
@@ -20,7 +21,7 @@ from charmhelpers.core import (
 def install():
     render_config()
     if update_keytab():
-        set_state('kerberos.installed')
+        set_flag('kerberos.installed')
 
 
 @when('config.changed')
@@ -31,7 +32,7 @@ def config_changed():
 
 @when('kerberos.keytab-update-requested')
 def keytab_update_requested():
-    hookenv.status_set('maintenance', 'Starting keytab update')
+    status_set('maintenance', 'Starting keytab update')
     if check_keytab_for_upgrade_needed():
         if update_keytab():
-            remove_state('kerberos.keytab-update-requested')
+            clear_flag('kerberos.keytab-update-requested')
