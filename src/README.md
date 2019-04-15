@@ -5,16 +5,17 @@ a pregenerated keytab file.
 
 # Usage
 
-From an existing KDC or Kerberos enabled AD server create one or more principals
+From an existing KDC or Kerberos-enabled AD server create one or more principals
 for the units you wish to add to your domain.
 
   - For each host create $HOSTNAME.keytab
   - Tar the resulting files into keytab.tar
 
-It is important to have this file created before deploying the charm. Then:
+It is important to have this file created before deploying the charm. This file
+can then be used during application deployment:
 
-  - juju deploy kerberos-keytab
-  - juju add-relation kerberos-keytab <some other principal charm>
+  - juju deploy kerberos-keytab --resource keytab_bundle=<path-to-file>.tar
+  - juju add-relation kerberos-keytab <some-other-principal-charm>
 
 # Configuration
 

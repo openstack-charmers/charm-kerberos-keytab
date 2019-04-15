@@ -1,8 +1,7 @@
 import hashlib
 import subprocess
 import tarfile
-import os
-
+import shutil
 from socket import gethostname
 from jinja2 import Template
 
@@ -31,11 +30,12 @@ def check_resource():
             'No keytab bundle specified, please upload a bundle to proceed')
         return False
     try:
-        k = tarfile.open(bundle)
+        tarfile.open(bundle)
     except tarfile.ReadError:
         status_set(
             'blocked',
-            'Keytab bundle cannot be extracted. Re-upload and run update-keytab')
+            'Keytab bundle cannot be extracted.'
+            ' Re-upload and run update-keytab')
         return False
     status_set('maintenance', 'Keytab bundle found, continuing')
     return True
@@ -59,6 +59,7 @@ def update_keytab():
         status_set('active', 'Unit is ready.')
         return True
     return False
+
 
 def render_config():
     ''' Given the provided charm config render the krb5 configuration '''
