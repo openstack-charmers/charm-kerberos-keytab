@@ -29,4 +29,5 @@ options:
     type: string
     default: host
     description: |
-      principal to use when adding the server, e.g. "host/HOSTNAME.example.com"
+      Principal to use when adding the server, e.g. "host/HOSTNAME.example.com"
+      Defaults to "host".

@@ -1,7 +1,8 @@
 import hashlib
+import os
 import subprocess
-import tarfile
 import shutil
+import tarfile
 from socket import gethostname
 from jinja2 import Template
 
@@ -41,6 +42,14 @@ def check_resource():
     return True
 
 
+def extract_host_keytab(path):
+    ''' Extract the host's keytab to a specific path '''
+    hostname = gethostname()
+    bundle = resource_get(RESOURCE)
+    keytab_bundle = tarfile.open(bundle)
+    keytab_bundle.extract('{}.keytab'.format(hostname), path=path)
+
+
 def update_keytab():
     ''' Update the keytab file on disk and use kinit to generate a new
         certificate cache.
@@ -48,13 +57,12 @@ def update_keytab():
     status_set('maintenance', 'Updating keytab file')
     if check_resource():
         hostname = gethostname()
-        bundle = resource_get(RESOURCE)
-        keytab_bundle = tarfile.open(bundle)
-        keytab_bundle.extract('%s.keytab' % hostname, path='/etc')
-        shutil.move('/etc/%s.keytab' % hostname, KEYTAB_PATH)
+        extract_host_keytab(path='/etc')
+        shutil.move('/etc/{}.keytab'.format(hostname), KEYTAB_PATH)
+        os.chmod(KEYTAB_PATH, 0o644)
         subprocess.check_call(
             ['sudo', '-u', config('user'), 'kinit', '-t', KEYTAB_PATH,
-             '%s/%s' % (config('principal'), hostname)])
+             '{}/{}'.format(config('principal'), hostname)])
         calculate_and_store_keytab_checksum()
         status_set('active', 'Unit is ready.')
         return True
@@ -81,7 +89,7 @@ def render_config():
 def check_keytab_for_upgrade_needed():
     ''' Return True if the keytab bundle has changed '''
     status_set('maintenance', 'Checking keytab resources')
-    key = CHECKSUM_PREFIX + RESOURCE
+    key = CHECKSUM_PREFIX + gethostname() + RESOURCE
     old_checksum = db.get(key)
     new_checksum = calculate_keytab_checksum(RESOURCE)
     if new_checksum != old_checksum:
@@ -93,14 +101,17 @@ def calculate_keytab_checksum(resource):
     ''' Calculate a checksum for a resource '''
     md5 = hashlib.md5()
     path = resource_get(RESOURCE)
-    if path:
+    temp_path = '/tmp/{}.keytab'.format(gethostname())
+    extract_host_keytab(path='/tmp')
+    if os.path.isfile(temp_path):
         with open(path, 'rb') as f:
             data = f.read()
         md5.update(data)
+        os.remove(temp_path)
     return md5.hexdigest()
 
 
 def calculate_and_store_keytab_checksum():
-    key = CHECKSUM_PREFIX + RESOURCE
+    key = CHECKSUM_PREFIX + gethostname() + RESOURCE
     checksum = calculate_keytab_checksum(RESOURCE)
     db.set(key, checksum)

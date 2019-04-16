@@ -7,6 +7,7 @@ from unittest.mock import (
 import lib.kerberos.kerberos_keytab_utils as kerberos_keytab_utils
 import unit_tests.test_utils
 
+import os
 import tarfile
 import shutil
 import subprocess  # noqa
@@ -39,9 +40,11 @@ class TestKerberosKeytabUtils(unit_tests.test_utils.CharmTestCase):
     @patch.object(kerberos_keytab_utils, 'gethostname')
     @patch.object(shutil, 'move')
     @patch.object(tarfile, 'open')
+    @patch.object(os, 'chmod')
     def test_update_keytab_valid_resource(
             self,
             tarfile_open,
+            os_chmod,
             shutil_move,
             gethostname,
             calculate_and_store_keytab_checksum,

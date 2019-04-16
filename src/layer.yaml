@@ -4,3 +4,4 @@ options:
   basic:
     packages:
       - krb5-user
+repo: https://github.com/openstack-charmers/charm-kerberos-keytab
