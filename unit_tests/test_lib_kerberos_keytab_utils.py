@@ -55,7 +55,7 @@ class TestKerberosKeytabUtils(unit_tests.test_utils.CharmTestCase):
         def config_side_effect(key):
             return {
                 'user': 'testuser',
-                'principal': 'testprincipal',
+                'windows-kdc': 'False'
             }[key]
 
         self.config.side_effect = config_side_effect
@@ -64,9 +64,7 @@ class TestKerberosKeytabUtils(unit_tests.test_utils.CharmTestCase):
 
         with patch('subprocess.check_call') as _subp_check_call:
             kinit_cmd = ['sudo', '-u', self.config('user'), 'kinit', '-t',
-                         kerberos_keytab_utils.KEYTAB_PATH,
-                         '{}/{}'.format(self.config('principal'),
-                                        gethostname())]
+                         kerberos_keytab_utils.KEYTAB_PATH]
             self.assertTrue(kerberos_keytab_utils.update_keytab())
             _subp_check_call.assert_called_with(kinit_cmd)
 

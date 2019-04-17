@@ -57,14 +57,23 @@ def update_keytab():
     status_set('maintenance', 'Updating keytab file')
     if check_resource():
         hostname = gethostname()
+        if config('windows-kdc'):
+            hostname = hostname + '$'
         extract_host_keytab(path='/etc')
         shutil.move('/etc/{}.keytab'.format(hostname), KEYTAB_PATH)
         os.chmod(KEYTAB_PATH, 0o644)
-        subprocess.check_call(
-            ['sudo', '-u', config('user'), 'kinit', '-t', KEYTAB_PATH,
-             '{}/{}'.format(config('principal'), hostname)])
+        try:
+            subprocess.check_call(
+                ['sudo', '-u', config('user'), 'kinit', '-t', KEYTAB_PATH])
+        except subprocess.CalledProcessError as err:
+            if "Keytab contains no suitable keys" in err:
+                status_set(
+                    'blocked',
+                    'Invalid hostname in keytab, please check and reupload')
+            else:
+                raise err
         calculate_and_store_keytab_checksum()
-        status_set('active', 'Unit is ready.')
+        status_set('active', 'Unit is ready')
         return True
     return False
 
