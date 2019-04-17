@@ -55,7 +55,6 @@ class TestKerberosKeytabUtils(unit_tests.test_utils.CharmTestCase):
         def config_side_effect(key):
             return {
                 'user': 'testuser',
-                'windows-kdc': 'False'
             }[key]
 
         self.config.side_effect = config_side_effect

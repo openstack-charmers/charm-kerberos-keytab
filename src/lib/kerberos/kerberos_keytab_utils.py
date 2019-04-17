@@ -57,8 +57,6 @@ def update_keytab():
     status_set('maintenance', 'Updating keytab file')
     if check_resource():
         hostname = gethostname()
-        if config('windows-kdc'):
-            hostname = hostname + '$'
         extract_host_keytab(path='/etc')
         shutil.move('/etc/{}.keytab'.format(hostname), KEYTAB_PATH)
         os.chmod(KEYTAB_PATH, 0o644)
