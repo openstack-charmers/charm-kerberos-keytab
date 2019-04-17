@@ -25,12 +25,3 @@ options:
     default: ubuntu
     description: |
       Local user to perform domain join under, defaults to ubuntu.
-<<<<<<< HEAD
-=======
-  windows-kdc:
-    type: boolean
-    default: False
-    description: |
-      Set true to add '$' to the end of the hostname for compatibility with
-      Windows AD servers.
->>>>>>> bc406abcf2b3520716c22c09e68521297ef6d852
