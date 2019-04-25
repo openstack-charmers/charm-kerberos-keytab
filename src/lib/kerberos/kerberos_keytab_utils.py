@@ -2,7 +2,7 @@ import hashlib
 import subprocess
 import tarfile
 import shutil
-from socket import gethostname
+from socket import gethostname, getfqdn
 from jinja2 import Template
 
 
@@ -47,18 +47,38 @@ def update_keytab():
     '''
     status_set('maintenance', 'Updating keytab file')
     if check_resource():
-        hostname = gethostname()
+        hostname = gethostname().lower()
         bundle = resource_get(RESOURCE)
         keytab_bundle = tarfile.open(bundle)
         keytab_bundle.extract('%s.keytab' % hostname, path='/etc')
         shutil.move('/etc/%s.keytab' % hostname, KEYTAB_PATH)
         subprocess.check_call(
             ['sudo', '-u', config('user'), 'kinit', '-t', KEYTAB_PATH,
-             '%s/%s' % (config('principal'), hostname)])
+             parse_principal_template(config('principal'))])
         calculate_and_store_keytab_checksum()
         status_set('active', 'Unit is ready.')
         return True
     return False
+
+
+def parse_principal_template(template):
+    ''' Replace strings in template with the upper/lower/fqdn/short hostname
+        by parsing the hostname and replacing strings with the various values
+    '''
+    fqdn_lower = getfqdn().lower()
+    FQDN_UPPER = fqdn_lower.upper()
+    shorthostname_lower = gethostname().split('.')[0].lower()
+    SHORTHOSTNAME_UPPER = shorthostname_lower.upper()
+
+    principal = template
+
+    principal = principal.replace('{hostname}', gethostname())
+    principal = principal.replace('{fqdn}', fqdn_lower)
+    principal = principal.replace('{FQDN}', FQDN_UPPER)
+    principal = principal.replace('{short}', shorthostname_lower)
+    principal = principal.replace('{SHORT}', SHORTHOSTNAME_UPPER)
+
+    return principal
 
 
 def render_config():

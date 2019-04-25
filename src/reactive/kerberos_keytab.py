@@ -36,3 +36,4 @@ def keytab_update_requested():
     if check_keytab_for_upgrade_needed():
         if update_keytab():
             clear_flag('kerberos.keytab-update-requested')
+            status_set('active', 'Ready')
