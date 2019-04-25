@@ -25,13 +25,18 @@ db = unitdata.kv()
 def check_resource():
     ''' Check if the keytab bundle exists and attempt to open it '''
     bundle = resource_get(RESOURCE)
+    hostname = gethostname()
     if not bundle:
         status_set(
             'blocked',
             'No keytab bundle specified, please upload a bundle to proceed')
         return False
     try:
-        tarfile.open(bundle)
+        keytab_bundle = tarfile.open(bundle)
+        if not "{}.keytab".format(hostname) in keytab_bundle.getnames():
+            status_set('blocked',
+                       'Keytab bundle does not contain a keytab for this host')
+            return False
     except tarfile.ReadError:
         status_set(
             'blocked',
@@ -52,24 +57,26 @@ def extract_host_keytab(path):
 
 def update_keytab():
     ''' Update the keytab file on disk and use kinit to generate a new
-        certificate cache.
+        credential cache.
     '''
     status_set('maintenance', 'Updating keytab file')
     if check_resource():
         hostname = gethostname()
-        if config('windows-kdc'):
-            hostname = hostname + '$'
         extract_host_keytab(path='/etc')
         shutil.move('/etc/{}.keytab'.format(hostname), KEYTAB_PATH)
         os.chmod(KEYTAB_PATH, 0o644)
         try:
             subprocess.check_call(
                 ['sudo', '-u', config('user'), 'kinit', '-t', KEYTAB_PATH])
-        except subprocess.CalledProcessError as err:
-            if "Keytab contains no suitable keys" in err:
+            subprocess.check_call(
+                ['sudo', '-u', config('user'),
+                 'krenew', '-b', '-K', config('ticket-renewal-interval')])
+        except Exception as err:
+            if "Keytab contains no suitable keys" in str(err):
                 status_set(
                     'blocked',
                     'Invalid hostname in keytab, please check and reupload')
+                return False
             else:
                 raise err
         calculate_and_store_keytab_checksum()
@@ -98,6 +105,8 @@ def render_config():
 def check_keytab_for_upgrade_needed():
     ''' Return True if the keytab bundle has changed '''
     status_set('maintenance', 'Checking keytab resources')
+    if not check_resource():
+        return False
     key = CHECKSUM_PREFIX + gethostname() + RESOURCE
     old_checksum = db.get(key)
     new_checksum = calculate_keytab_checksum(RESOURCE)
