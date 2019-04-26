@@ -21,6 +21,7 @@ from charmhelpers.core.hookenv import (
 def install():
     render_config()
     if update_keytab():
+        status_set('active', 'Unit is ready')
         set_flag('kerberos.installed')
 
 

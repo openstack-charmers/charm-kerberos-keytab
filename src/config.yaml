@@ -25,8 +25,8 @@ options:
     default: ubuntu
     description: |
       Local user to perform domain join under, defaults to ubuntu.
-  principal:
-    type: string
-    default: host
+  ticket-renewal-interval:
+    type: int
+    default: 60
     description: |
-      principal to use when adding the server, e.g. "host/HOSTNAME.example.com"
+      Duration in minutes for ticket renewal.
