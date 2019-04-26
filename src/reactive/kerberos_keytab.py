@@ -21,6 +21,7 @@ from charmhelpers.core.hookenv import (
 def install():
     render_config()
     if update_keytab():
+        status_set('active', 'Unit is ready')
         set_flag('kerberos.installed')
 
 
@@ -36,3 +37,4 @@ def keytab_update_requested():
     if check_keytab_for_upgrade_needed():
         if update_keytab():
             clear_flag('kerberos.keytab-update-requested')
+            status_set('active', 'Ready')

@@ -27,6 +27,17 @@ options:
       Local user to perform domain join under, defaults to ubuntu.
   principal:
     type: string
-    default: host
+    default: host/{hostname}
     description: |
       principal to use when adding the server, e.g. "host/HOSTNAME.example.com"
+      This variable is templated.  You can use the following variable substitutions
+      {hostname} - the output of 'hostname -f' with no additional casing
+      {fqdn} - lower-cased FQDN of the node
+      {FQDN} - upper-cased FQDN of the node
+      {short} - lower-cased short name of the node
+      {SHORT} - upper-cased short name of the node
+  ticket-renewal-interval:
+    type: int
+    default: 60
+    description: |
+      Duration in minutes for ticket renewal.

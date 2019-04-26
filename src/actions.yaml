@@ -1,0 +1,6 @@
+update-keytab:
+  description: |
+    Kick off keytab rotation in case of updating a keytab file for one or more
+    units of the charm. Will perform an md5 hash on each unit's keytab and
+    update appropriately on a change.
+  
