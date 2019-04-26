@@ -7,6 +7,7 @@ from unittest.mock import (
 import lib.kerberos.kerberos_keytab_utils as kerberos_keytab_utils
 import unit_tests.test_utils
 
+import os
 import tarfile
 import shutil
 import subprocess  # noqa
@@ -20,10 +21,19 @@ class TestKerberosKeytabUtils(unit_tests.test_utils.CharmTestCase):
         self.patches = ['config', 'resource_get', 'status_set']
         self.patch_all()
 
+    @patch.object(tarfile, 'TarFile')
     @patch.object(tarfile, 'open')
-    def test_check_resource_valid_archive(self, tarfile_open):
+    @patch.object(kerberos_keytab_utils, 'gethostname')
+    def test_check_resource_valid_archive(
+            self,
+            gethostname,
+            tarfile_open,
+            tarfile_Tarfile,
+    ):
+        gethostname.return_value = 'testhost'
+        tarfile_open.return_value = tarfile_Tarfile
+        tarfile_Tarfile.getnames.return_value = ['testhost.keytab']
         self.resource_get.return_value = 'targzfile'
-        tarfile_open.return_value = 'handle'
 
         self.assertTrue(kerberos_keytab_utils.check_resource())
 
@@ -39,9 +49,13 @@ class TestKerberosKeytabUtils(unit_tests.test_utils.CharmTestCase):
     @patch.object(kerberos_keytab_utils, 'gethostname')
     @patch.object(shutil, 'move')
     @patch.object(tarfile, 'open')
+    @patch.object(tarfile.TarFile, 'getnames')
+    @patch.object(os, 'chmod')
     def test_update_keytab_valid_resource(
             self,
             tarfile_open,
+            tarfile_Tarfile_getnames,
+            os_chmod,
             shutil_move,
             gethostname,
             calculate_and_store_keytab_checksum,
@@ -52,7 +66,7 @@ class TestKerberosKeytabUtils(unit_tests.test_utils.CharmTestCase):
         def config_side_effect(key):
             return {
                 'user': 'testuser',
-                'principal': 'testprincipal',
+                'ticket-renewal-interval': '60'
             }[key]
 
         self.config.side_effect = config_side_effect
@@ -61,9 +75,9 @@ class TestKerberosKeytabUtils(unit_tests.test_utils.CharmTestCase):
 
         with patch('subprocess.check_call') as _subp_check_call:
             kinit_cmd = ['sudo', '-u', self.config('user'), 'kinit', '-t',
-                         kerberos_keytab_utils.KEYTAB_PATH,
-                         '{}/{}'.format(self.config('principal'),
-                                        gethostname())]
+                         kerberos_keytab_utils.KEYTAB_PATH]
+            kinit_cmd = ['sudo', '-u', self.config('user'), 'krenew', '-b',
+                         '-K', self.config('ticket-renewal-interval')]
             self.assertTrue(kerberos_keytab_utils.update_keytab())
             _subp_check_call.assert_called_with(kinit_cmd)
 
