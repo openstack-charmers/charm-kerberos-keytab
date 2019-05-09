@@ -65,21 +65,22 @@ def update_keytab():
         extract_host_keytab(path='/etc')
         shutil.move('/etc/{}.keytab'.format(hostname), KEYTAB_PATH)
         os.chmod(KEYTAB_PATH, 0o644)
-        try:
-            subprocess.check_call(
-                ['sudo', '-u', config('user'), 'kinit', '-t', KEYTAB_PATH,
-                 parse_principal_template(config('principal'))])
-            subprocess.check_call(
-                ['sudo', '-u', config('user'),
-                 'krenew', '-b', '-K', config('ticket-renewal-interval')])
-        except Exception as err:
-            if "Keytab contains no suitable keys" in str(err):
-                status_set(
-                    'blocked',
-                    'Invalid hostname in keytab, please check and reupload')
-                return False
-            else:
-                raise err
+        if not config('skip-kinit'):
+            try:
+                subprocess.check_call(
+                    ['sudo', '-u', config('user'), 'kinit', '-t', KEYTAB_PATH,
+                     parse_principal_template(config('principal'))])
+                subprocess.check_call(
+                    ['sudo', '-u', config('user'),
+                     'krenew', '-b', '-K', config('ticket-renewal-interval')])
+            except Exception as err:
+                if "Keytab contains no suitable keys" in str(err):
+                    status_set(
+                        'blocked',
+                        'Invalid hostname in keytab, please check and reupload')
+                    return False
+                else:
+                    raise err
         calculate_and_store_keytab_checksum()
         status_set('active', 'Unit is ready')
         return True

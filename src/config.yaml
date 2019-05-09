@@ -41,3 +41,9 @@ options:
     default: 60
     description: |
       Duration in minutes for ticket renewal.
+  skip-kinit:
+    type: boolean
+    default: false
+    description: |
+      Set true to skip 'kinit' and 'krenew' commands and only write
+      /etc/krb5.conf and the supplied keytab to /etc/krb5.keytab
